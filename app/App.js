@@ -10,7 +10,7 @@ import Stack from './navigation/Stack';
 import {NavigationContainer} from '@react-navigation/native';
 import styled from 'styled-components/native';
 
-const AppSafeArea = styled.SafeAreaView`
+const AppSafeArea = styled.View`
   flex: 1;
 `;
 
