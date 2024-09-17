@@ -12,7 +12,6 @@ import styled from 'styled-components/native';
 
 const AppSafeArea = styled.SafeAreaView`
   flex: 1;
-  background-color: #42a0f9;
 `;
 
 function App() {
