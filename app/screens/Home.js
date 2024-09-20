@@ -3,6 +3,8 @@ import styled from 'styled-components/native';
 import {useNavigation} from '@react-navigation/native';
 import {Camera} from 'react-native-vision-camera';
 import {Linking} from 'react-native';
+import {initializeApp} from 'firebase/app';
+import firebaseConfig from '../components/firebaseConfig.js';
 
 const HomeView = styled.View`
   flex: 1;
@@ -49,6 +51,10 @@ function Home() {
   const navigation = useNavigation();
 
   useEffect(() => {
+    initializeApp(firebaseConfig); // Firebase 초기화
+  }, []);
+
+  useEffect(() => {
     const checkPermission = async () => {
       try {
         const cameraPermission = await Camera.getCameraPermissionStatus();
@@ -85,7 +91,7 @@ function Home() {
   return (
     <HomeView>
       <TitleView>
-        <TitleText>비전캐스트</TitleText>
+        <TitleText>VisionVoice</TitleText>
       </TitleView>
       <BottomView>
         <ButtonView onPress={() => navigation.navigate('Track')}>
