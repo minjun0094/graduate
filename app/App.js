@@ -9,6 +9,7 @@ import React from 'react';
 import Stack from './navigation/Stack';
 import {NavigationContainer} from '@react-navigation/native';
 import styled from 'styled-components/native';
+import {TranslatorProvider} from 'react-native-translator';
 
 const AppSafeArea = styled.View`
   flex: 1;
@@ -16,11 +17,13 @@ const AppSafeArea = styled.View`
 
 function App() {
   return (
-    <AppSafeArea>
-      <NavigationContainer>
-        <Stack />
-      </NavigationContainer>
-    </AppSafeArea>
+    <TranslatorProvider>
+      <AppSafeArea>
+        <NavigationContainer>
+          <Stack />
+        </NavigationContainer>
+      </AppSafeArea>
+    </TranslatorProvider>
   );
 }
 
