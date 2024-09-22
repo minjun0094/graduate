@@ -3,7 +3,7 @@ import styled from 'styled-components/native';
 import {Camera, useCameraDevice} from 'react-native-vision-camera';
 import {getStorage, ref, uploadBytes, getDownloadURL} from 'firebase/storage'; // Firebase storage import
 import {useTranslator} from 'react-native-translator'; // 번역기 import
-import {Text} from 'react-native'; // 번역 결과를 표시하기 위해 Text 컴포넌트 사용
+// import {NativeEventEmitter, NativeModules} from 'react-native'; // 번역 결과를 표시하기 위해 Text 컴포넌트 사용
 import Tts from 'react-native-tts'; // TTS(Talk to Speech) import
 
 const MainView = styled.View`
@@ -34,6 +34,12 @@ function Track() {
   const [translatedCaption, setTranslatedCaption] = useState(''); // 번역된 캡션 상태
 
   useEffect(() => {
+    Tts.addEventListener('tts-start', event => console.log('start', event));
+    Tts.addEventListener('tts-progress', event =>
+      console.log('progress', event),
+    );
+    Tts.addEventListener('tts-finish', event => console.log('finish', event));
+    Tts.addEventListener('tts-cancel', event => console.log('cancel', event));
     Tts.setDefaultLanguage('ko-KR'); // 한국어 설정
     Tts.setDefaultRate(0.5); // 음성 속도 설정
   }, []);
@@ -63,11 +69,11 @@ function Track() {
 
   const sendToHuggingFace = async imageUrl => {
     const response = await fetch(
-      'https://api-inference.huggingface.co/models/nlpconnect/vit-gpt2-image-captioning',
+      'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large',
       {
         method: 'POST',
         headers: {
-          Authorization: 'Bearer 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', // Hugging Face API 토큰
+          Authorization: 'Bearer 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', // Hugging Face API 토큰
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({inputs: imageUrl}), // Firebase Storage의 이미지 URL
