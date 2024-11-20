@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import styled from 'styled-components/native';
 import {useNavigation} from '@react-navigation/native';
 import {Camera} from 'react-native-vision-camera';
-import {Linking} from 'react-native';
+import {Alert, Linking, Platform} from 'react-native';
 import {initializeApp} from 'firebase/app';
 import firebaseConfig from '../components/firebaseConfig.js';
 
@@ -57,28 +57,36 @@ function Home() {
   useEffect(() => {
     const checkPermission = async () => {
       try {
-        const cameraPermission = await Camera.getCameraPermissionStatus();
-        console.log(cameraPermission);
-        if (cameraPermission === 'granted') {
-          // 카메라 권한이 있을 때 실행할 로직
+        let cameraPermission = await Camera.getCameraPermissionStatus();
+
+        // Android와 iOS 권한 상태 확인
+        if (
+          cameraPermission === 'authorized' ||
+          cameraPermission === 'granted'
+        ) {
           console.log('카메라 권한이 부여되었습니다.');
-        } else if (cameraPermission === 'not-determined') {
-          // 아직 권한 요청을 하지 않은 상태로 새롭게 권한 요청하기
+        } else if (
+          cameraPermission === 'not-determined' ||
+          cameraPermission === 'denied'
+        ) {
+          console.log('카메라 권한이 부여되지 않았습니다. 요청을 시작합니다.');
           const newCameraPermission = await Camera.requestCameraPermission();
-          if (newCameraPermission === 'authorized') {
-            // 카메라 권한이 있을 때 실행할 로직
+
+          if (
+            newCameraPermission === 'authorized' ||
+            newCameraPermission === 'granted'
+          ) {
             console.log('카메라 권한이 부여되었습니다.');
-          } else if (newCameraPermission === 'denied') {
-            // 권한 요청을 했지만 거부됐을 때 실행할 로직
-            // ex) 설정으로 이동, 권한이 없으면 카메라 실행할 수 없다는 알림창 등등
-            console.log('카메라 권한이 거부되었습니다. 설정으로 이동합니다.');
-            await Linking.openSettings();
+          } else {
+            console.log('카메라 권한이 거부되었습니다.');
+            Alert.alert(
+              '권한 필요',
+              '카메라 권한이 거부되었습니다. 권한 없이는 앱을 사용할 수 없습니다.',
+              [{text: '확인'}],
+            );
           }
-        } else if (cameraPermission === 'denied') {
-          // 권한 요청을 했지만 거부됐을 때 실행할 로직
-          // ex) 설정으로 이동, 권한이 없으면 카메라 실행할 수 없다는 알림창 등등
-          console.log('카메라 권한이 거부되었습니다. 설정으로 이동합니다.');
-          await Linking.openSettings();
+        } else {
+          console.log(`예상치 못한 권한 상태: ${cameraPermission}`);
         }
       } catch (error) {
         console.error('권한 확인 중 오류 발생:', error);

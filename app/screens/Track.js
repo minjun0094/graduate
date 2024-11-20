@@ -1,10 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import styled from 'styled-components/native';
 import {Camera, useCameraDevice} from 'react-native-vision-camera';
-import {getStorage, ref, uploadBytes, getDownloadURL} from 'firebase/storage'; // Firebase storage import
-import {useTranslator} from 'react-native-translator'; // 번역기 import
-// import {NativeEventEmitter, NativeModules} from 'react-native'; // 번역 결과를 표시하기 위해 Text 컴포넌트 사용
-import Tts from 'react-native-tts'; // TTS(Talk to Speech) import
+import {Platform, ActivityIndicator} from 'react-native';
+import {getStorage, ref, uploadBytes, getDownloadURL} from 'firebase/storage';
+import {useTranslator} from 'react-native-translator';
+import Tts from 'react-native-tts';
+import storage from '@react-native-firebase/storage';
+import RNFS from 'react-native-fs';
 
 const MainView = styled.View`
   flex: 1;
@@ -14,13 +16,21 @@ const CameraView = styled(Camera)`
   flex: 1;
 `;
 
+const ProgressBarContainer = styled.View`
+  position: absolute;
+  bottom: 50px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+`;
+
 const StartBtn = styled.TouchableOpacity`
   position: absolute;
   width: 90px;
   height: 90px;
   left: 40%;
   border-radius: 50px;
-  border-color: white;
+  border-color: ${({disabled}) => (disabled ? 'gray' : 'white')};
   border-width: 10px;
   bottom: 50px;
   justify-content: center;
@@ -28,40 +38,62 @@ const StartBtn = styled.TouchableOpacity`
 `;
 
 function Track() {
-  const device = useCameraDevice('back');
+  const device = useCameraDevice('back'); //사용 카메라 디바이스 정의
+
   const cameraRef = useRef(null);
   const {translate} = useTranslator(); // useTranslator 훅 사용
   const [translatedCaption, setTranslatedCaption] = useState(''); // 번역된 캡션 상태
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false); // 버튼 상태 관리
+  const [isProcessing, setIsProcessing] = useState(false); // 프로세스 상태
 
   useEffect(() => {
     Tts.addEventListener('tts-start', event => console.log('start', event));
     Tts.addEventListener('tts-progress', event =>
       console.log('progress', event),
     );
-    Tts.addEventListener('tts-finish', event => console.log('finish', event));
+    Tts.addEventListener('tts-finish', () => {
+      console.log('TTS finished');
+      setIsProcessing(false);
+      setIsButtonDisabled(false); // TTS가 끝나면 버튼 활성화
+    });
     Tts.addEventListener('tts-cancel', event => console.log('cancel', event));
     Tts.setDefaultLanguage('ko-KR'); // 한국어 설정
     Tts.setDefaultRate(0.5); // 음성 속도 설정
   }, []);
 
   const uploadToFirebase = async fileUri => {
-    const storage = getStorage();
-    const fileRef = ref(storage, 'uploads/' + Date.now() + '.jpg'); // 고유 파일명으로 저장
-
-    // 파일을 가져와서 Firebase Storage에 업로드
-    const response = await fetch(fileUri);
-    const blob = await response.blob();
+    const fileName = 'uploads/' + Date.now() + '.jpg'; // 고유 파일명
+    const isIOS = Platform.OS === 'ios';
 
     try {
-      const snapshot = await uploadBytes(fileRef, blob);
-      console.log('Uploaded a blob or file:', snapshot);
+      if (isIOS) {
+        // iOS: 기존 방식 사용
+        const storageInstance = getStorage();
+        const fileRef = ref(storageInstance, fileName);
 
-      // Firebase Storage에서 파일 URL 가져오기
-      const downloadURL = await getDownloadURL(fileRef);
-      console.log('File available at', downloadURL);
+        const response = await fetch(fileUri);
+        const blob = await response.blob();
 
-      // 가져온 URL로 Hugging Face API에 전송
-      await sendToHuggingFace(downloadURL);
+        const snapshot = await uploadBytes(fileRef, blob);
+        console.log('Uploaded a blob or file (iOS):', snapshot);
+
+        const downloadURL = await getDownloadURL(fileRef);
+        console.log('File available at (iOS):', downloadURL);
+
+        // 가져온 URL로 Hugging Face API에 전송
+        await sendToHuggingFace(downloadURL);
+      } else {
+        const storageRef = storage().ref(fileName);
+        const data = await RNFS.readFile(fileUri, 'base64');
+        await storageRef.putString(data, 'base64');
+        // Reference to Firebase Storage
+
+        // Get the file's download URL
+        const fileUrl = await storageRef.getDownloadURL();
+        console.log('File uploaded successfully! URL:', fileUrl);
+
+        await sendToHuggingFace(fileUrl);
+      }
     } catch (error) {
       console.error('Error uploading file:', error);
     }
@@ -108,6 +140,8 @@ function Track() {
   const takePhoto = async () => {
     if (cameraRef.current) {
       try {
+        setIsProcessing(true); // 프로세스 시작
+        setIsButtonDisabled(true); // 버튼 비활성화
         const photo = await cameraRef.current.takePhoto({
           quality: 0.5,
         });
@@ -115,6 +149,8 @@ function Track() {
         await uploadToFirebase(photo.path); // Firebase에 업로드
       } catch (error) {
         console.error('Error taking photo:', error);
+        setIsButtonDisabled(false); // 에러 발생 시 버튼 활성화
+        setIsProcessing(false); // 에러 발생 시 프로세스 종료
       }
     }
   };
@@ -133,14 +169,20 @@ function Track() {
         isActive={true}
         photo={true}
       />
-      {/* <Text>{translatedCaption}</Text> 번역된 텍스트 표시 */}
       {/* <StartBtn> */}
-      <StartBtn
-        onPress={() => {
-          takePhoto();
-        }}>
-        {/* 버튼 클릭 시에도 사진 촬영 가능하게 할 수 있음 */}
-      </StartBtn>
+
+      <ProgressBarContainer>
+        {isProcessing ? (
+          <ActivityIndicator size="large" color="white" />
+        ) : (
+          <StartBtn
+            disabled={isButtonDisabled}
+            onPress={() => {
+              takePhoto();
+            }}
+          />
+        )}
+      </ProgressBarContainer>
     </MainView>
   );
 }

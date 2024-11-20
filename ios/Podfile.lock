@@ -1103,6 +1103,8 @@ PODS:
     - Firebase/Storage (= 10.29.0)
     - React-Core
     - RNFBApp
+  - RNFS (2.20.0):
+    - React-Core
   - RNGestureHandler (2.19.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
@@ -1134,16 +1136,16 @@ PODS:
   - SocketRocket (0.6.1)
   - TextToSpeech (4.1.1):
     - React-Core
-  - VisionCamera (4.5.3):
-    - VisionCamera/Core (= 4.5.3)
-    - VisionCamera/FrameProcessors (= 4.5.3)
-    - VisionCamera/React (= 4.5.3)
-  - VisionCamera/Core (4.5.3)
-  - VisionCamera/FrameProcessors (4.5.3):
+  - VisionCamera (4.6.1):
+    - VisionCamera/Core (= 4.6.1)
+    - VisionCamera/FrameProcessors (= 4.6.1)
+    - VisionCamera/React (= 4.6.1)
+  - VisionCamera/Core (4.6.1)
+  - VisionCamera/FrameProcessors (4.6.1):
     - React
     - React-callinvoker
     - react-native-worklets-core
-  - VisionCamera/React (4.5.3):
+  - VisionCamera/React (4.6.1):
     - React-Core
     - VisionCamera/FrameProcessors
   - Yoga (1.14.0)
@@ -1204,6 +1206,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBStorage (from `../node_modules/@react-native-firebase/storage`)"
+  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -1334,6 +1337,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/app"
   RNFBStorage:
     :path: "../node_modules/@react-native-firebase/storage"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNPermissions:
@@ -1414,15 +1419,16 @@ SPEC CHECKSUMS:
   ReactCommon: e7a02fe39df0e289729a6d1638f00b2550fedacb
   RNFBApp: 5f87753a8d8b37d229adf85cd0ff37709ffdf008
   RNFBStorage: cfaaa615c556212a56987e735b4e3787363e5024
+  RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 04813e6968e3db3dcd58c9832de69dfabbfe002b
   RNPermissions: 294531ede5a64d1528463e88fffef05675842042
   RNReanimated: 222827a2a0b5795300acb1b395578d58f2dc7a68
   RNScreens: 6113407d16024819b62abc541506510da9038f48
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   TextToSpeech: 2b930ec3756afde499061f4f01ea895e1f75dccb
-  VisionCamera: 3b7cfecebbcb3871c4dd3fb47791b96a47fe5371
+  VisionCamera: ec141897a88c2e95e8b83cf97b8e4db801e02fd6
   Yoga: 20d6a900dcc8d61d5e3b799bbf627cc34474a8c4
 
 PODFILE CHECKSUM: 8ca6deb8eafa9bd63314c0a3227f44365a4d2de3
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.15.2
